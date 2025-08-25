@@ -1,7 +1,10 @@
-import Image from "next/image";
+import ModeToggle from "../../components/ModeToggle";
 
 export default function Home() {
   return (
-    <div>hellow</div>
+    <div>
+      <ModeToggle />
+      hellow
+      </div>
   );
 }
