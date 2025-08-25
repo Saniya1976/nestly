@@ -3,8 +3,7 @@ import ModeToggle from "../../components/ModeToggle";
 export default function Home() {
   return (
     <div>
-      <ModeToggle />
-      hellow
+      hello world home
       </div>
   );
 }
