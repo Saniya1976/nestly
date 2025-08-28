@@ -1,49 +1,99 @@
 import { currentUser } from "@clerk/nextjs/server"
-import { UserPlus, LogIn, UserStarIcon } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
-async function Sidebar() {
-    const authUser=await currentUser
-    if(!authUser)return <UnAuthenticatedSidebar />
-  return (
-    <div>Sidebar</div>
-  )
-}
+import { getUserByClerkId } from "@/actions/user.action";
+import { Avatar, AvatarImage } from "./ui/avatar";
+import { Separator } from "./ui/separator";
+import { LinkIcon, MapPinIcon } from "lucide-react";
+import Link from "next/link";
 
-export default Sidebar
+async function Sidebar() {
+    const authUser=await currentUser();
+    if(!authUser)return <UnAuthenticatedSidebar />;
+    const user=await getUserByClerkId(authUser.id);
+    if(!user) return null;
+  
+    return (
+      <div className="sticky top-20">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center text-center">
+            <Link
+              href={`/profile/${user.username}`}
+              className="flex flex-col items-center justify-center"
+            >
+              <Avatar className="w-20 h-20 border-2 ">
+                <AvatarImage src={user.image || "/avatar.png"} />
+              </Avatar>
+
+              <div className="mt-4 space-y-1">
+                <h3 className="font-semibold">{user.name}</h3>
+                <p className="text-sm text-muted-foreground">{user.username}</p>
+              </div>
+            </Link>
+
+            {user.bio && <p className="mt-3 text-sm text-muted-foreground">{user.bio}</p>}
+
+            <div className="w-full">
+              <Separator className="my-4" />
+              <div className="flex justify-between">
+                <div>
+                  <p className="font-medium">{user._count.following}</p>
+                  <p className="text-xs text-muted-foreground">Following</p>
+                </div>
+                <Separator orientation="vertical" />
+                <div>
+                  <p className="font-medium">{user._count.followers}</p>
+                  <p className="text-xs text-muted-foreground">Followers</p>
+                </div>
+              </div>
+              <Separator className="my-4" />
+            </div>
+
+            <div className="w-full space-y-2 text-sm">
+              <div className="flex items-center text-muted-foreground">
+                <MapPinIcon className="w-5 h-5 mr-2" />
+                {user.location || "No location"}
+              </div>
+              <div className="flex items-center text-muted-foreground">
+                <LinkIcon className="w-5 h-5 mr-2 shrink-0" />
+                {user.website ? (
+                  <a href={`${user.website}`} className="hover:underline truncate" target="_blank">
+                    {user.website}
+                  </a>
+                ) : (
+                  "No website"
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      </div>
+    );
+    }
+
+export default Sidebar;
 
 const UnAuthenticatedSidebar = () => (
   <div className="sticky top-20">
-    <Card className="border-0 shadow-xl bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white">
-      <CardHeader className="text-center pb-4">
-        <div className="mx-auto mb-3 w-12 h-12 bg-gradient-to-r from-gray-700 to-gray-500 rounded-full flex items-center justify-center shadow-lg">
-          <UserStarIcon className="w-6 h-6 text-white" />
-        </div>
-        <CardTitle className="text-xl font-bold bg-gradient-to-r from-gray-200 to-white bg-clip-text text-transparent">
-          Join the Community
-        </CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-center text-xl font-semibold">Welcome Back!</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-center text-sm text-gray-300 mb-4">
-          Connect with like-minded people and unlock exclusive features.
+      <CardContent>
+        <p className="text-center text-muted-foreground mb-4">
+          Login to access your profile and connect with others.
         </p>
         <SignInButton mode="modal">
-          <Button 
-            className="w-full bg-transparent border border-gray-600 text-white hover:bg-gray-800 hover:border-gray-500 transition-all duration-300" 
-            size="lg"
-          >
-            <LogIn className="w-4 h-4 mr-2" />
-            Sign In
+          <Button className="w-full" variant="outline">
+            Login
           </Button>
         </SignInButton>
         <SignUpButton mode="modal">
-          <Button 
-            className="w-full bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white shadow-lg hover:shadow-xl transition-all duration-300" 
-            size="lg"
-          >
-            <UserPlus className="w-4 h-4 mr-2" />
-            Create Account
+          <Button className="w-full mt-2" variant="default">
+            Sign Up
           </Button>
         </SignUpButton>
       </CardContent>
