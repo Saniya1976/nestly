@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
-
 import { cn } from "@/lib/utils"
 
 function Avatar({
@@ -16,6 +15,7 @@ function Avatar({
         "relative flex size-8 shrink-0 overflow-hidden rounded-full",
         className
       )}
+      suppressHydrationWarning={true} // ← ADD THIS
       {...props}
     />
   )
@@ -29,6 +29,7 @@ function AvatarImage({
     <AvatarPrimitive.Image
       data-slot="avatar-image"
       className={cn("aspect-square size-full", className)}
+      suppressHydrationWarning={true} // ← ADD THIS
       {...props}
     />
   )
@@ -45,6 +46,7 @@ function AvatarFallback({
         "bg-muted flex size-full items-center justify-center rounded-full",
         className
       )}
+      suppressHydrationWarning={true} // ← ADD THIS
       {...props}
     />
   )

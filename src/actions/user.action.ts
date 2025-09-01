@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { error } from "console";
+import { toast } from "sonner";
 
 
 export async function syncUser(){
@@ -91,6 +92,19 @@ export async function getRandomUsers(){
       return randomUsers;
 
     } catch (error) {
-        
+        console.log("Error fetching random users:", error);
+        return [];
+    }
+}
+export async function toggleFollow({userId}:{userId:string}){
+    try {
+        await prisma.user.create({
+            data:{
+                followerId:await getDbUserId(),
+                followingId:userId
+            }
+        })
+    } catch (error) {
+        toast.error("Failed to toggle follow");
     }
 }
