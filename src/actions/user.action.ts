@@ -56,3 +56,41 @@ const user=await getUserByClerkId(clerkId);
 if(!user) throw new Error("User not found");
 return user.id;
 }
+export async function getRandomUsers(){
+    try {
+      const userId=await getDbUserId();
+      const randomUsers=await prisma.user.findMany({
+        where:{
+            AND:[
+                {NOT:{id:userId},},
+                {NOT:{
+                    followers:{
+                        some:{
+                            followerId:userId
+                        }
+                    }
+                }},
+            ]
+        },
+        select:{
+            id:true,
+            username:true,
+            image:true,
+            name:true,
+            _count:{
+                select:{
+                    posts:true,
+                    followers:true,
+                    following:true,
+                }
+            }
+        },
+        take:3,
+      })
+      //get 3 random users to follow without our id and the person we already follow
+      return randomUsers;
+
+    } catch (error) {
+        
+    }
+}

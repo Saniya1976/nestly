@@ -29,16 +29,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ClerkProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* ClerkProvider should WRAP ThemeProvider */}
+        <ClerkProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             <div className="min-h-screen">
               <Navbar />
               <main className="py-8">
@@ -54,9 +53,9 @@ export default function RootLayout({
                 </div>
               </main>
             </div>
-          </ClerkProvider>
-          <ClientToaster />
-        </ThemeProvider>
+            <ClientToaster />
+          </ThemeProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

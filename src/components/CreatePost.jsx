@@ -17,30 +17,37 @@ function CreatePost() {
     const [isPosting, setIsPosting] = useState(false);
     const [showImageUpload, setShowImageUpload] = useState(false);
     
-    const handleSubmit = async () => {
-        // Allow posting with just content OR just image OR both
-        if (!content.trim() && !imageUrl) return;
+   const handleSubmit = async () => {
+    // Allow posting with just content OR just image OR both
+    if (!content.trim() && !imageUrl) return;
+    
+    setIsPosting(true);
+    try {
+        // Call your actual server action (not the component)
+        const result = await createPost({ content, imageUrl });
         
-        setIsPosting(true);
-        try {
-            // Call your actual server action (not the component)
-            const result = await createPost({ content, imageUrl });
-            if (result?.success) {
-                setContent("");
-                setImageUrl("");
-                setShowImageUpload(false);
-                toast.success("Post created successfully!");
-            } else {
-                toast.error(result.error || "Failed to create post");
-            }
-        } catch {
-            console.error("Post creation error:");
-            toast.error("Failed to create post. Please try again.");
-        } finally {
-            setIsPosting(false);
+        if (result?.success) {
+            setContent("");
+            setImageUrl("");
+            setShowImageUpload(false);
+            toast.success("Post created successfully!");
+        } else {
+            // SAFELY handle error - convert Error objects to strings
+            const errorMessage = result?.error instanceof Error 
+                ? result.error.message 
+                : result?.error || "Failed to create post";
+            toast.error(errorMessage);
         }
-    };
-
+    } catch (error) {
+        // SAFELY handle caught errors - convert Error objects to strings
+        const errorMessage = error instanceof Error 
+            ? error.message 
+            : "Failed to create post. Please try again.";
+        toast.error(errorMessage);
+    } finally {
+        setIsPosting(false);
+    }
+};
     return (
         <Card className="shadow-sm border-gray-200">
             <CardContent className="p-6">
