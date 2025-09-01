@@ -7,7 +7,7 @@ import { Textarea } from "./ui/textarea";
 import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 import { ImageIcon, Loader2, Send } from "lucide-react";
 import { Button } from "./ui/button";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "sonner";
 import { createPost } from "@/actions/post.action"; // Import your actual server action
 
 function CreatePost() {
