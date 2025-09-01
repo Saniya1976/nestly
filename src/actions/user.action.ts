@@ -98,12 +98,43 @@ export async function getRandomUsers(){
 }
 export async function toggleFollow({userId}:{userId:string}){
     try {
-        await prisma.user.create({
-            data:{
-                followerId:await getDbUserId(),
-                followingId:userId
+        const targetUserId=await getDbUserId();
+        if(userId===targetUserId) throw new Error("You cannot follow yourself");
+       const existingFollow=await prisma.follows.findUnique({
+            where:{
+                followerId_followingId:{
+                    followerId:userId,
+                    followingId:targetUserId
+                }
+            }
+       })
+       if(existingFollow){
+        await prisma.follows.delete({
+            where:{
+                followerId_followingId:{
+                    followerId:userId,
+                    followingId:targetUserId
+                }
             }
         })
+       }else{
+        await prisma.$transaction([
+            prisma.follows.create({
+                data:{
+                    followerId:userId,
+                    followingId:targetUserId
+                }
+            }),
+             prisma.notification.create({
+                data:{
+                    type:"FOLLOW",
+                    userId:targetUserId,
+                    creatorId:userId,
+                }
+             })
+        ])
+       }
+     return {success: true};
     } catch (error) {
         toast.error("Failed to toggle follow");
     }
