@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { error } from "console";
+import { revalidatePath } from "next/cache";
 import { toast } from "sonner";
 
 
@@ -96,47 +97,52 @@ export async function getRandomUsers(){
         return [];
     }
 }
-export async function toggleFollow({userId}:{userId:string}){
+export async function toggleFollow({ userId }: { userId: string }) {
     try {
-        const targetUserId=await getDbUserId();
-        if(userId===targetUserId) throw new Error("You cannot follow yourself");
-       const existingFollow=await prisma.follows.findUnique({
-            where:{
-                followerId_followingId:{
-                    followerId:userId,
-                    followingId:targetUserId
+        const currentUserId = await getDbUserId(); 
+        
+        if (userId === currentUserId) throw new Error("You cannot follow yourself");
+       
+        const existingFollow = await prisma.follows.findUnique({
+            where: {
+                followerId_followingId: {
+                    followerId: currentUserId,   
+                    followingId: userId          
                 }
             }
-       })
-       if(existingFollow){
-        await prisma.follows.delete({
-            where:{
-                followerId_followingId:{
-                    followerId:userId,
-                    followingId:targetUserId
+        });
+       
+        if (existingFollow) {
+            await prisma.follows.delete({
+                where: {
+                    followerId_followingId: {
+                        followerId: currentUserId,
+                        followingId: userId
+                    }
                 }
-            }
-        })
-       }else{
-        await prisma.$transaction([
-            prisma.follows.create({
-                data:{
-                    followerId:userId,
-                    followingId:targetUserId
-                }
-            }),
-             prisma.notification.create({
-                data:{
-                    type:"FOLLOW",
-                    userId:targetUserId,
-                    creatorId:userId,
-                }
-             })
-        ])
-       }
-     return {success: true};
+            });
+        } else {
+            await prisma.$transaction([
+                prisma.follows.create({
+                    data: {
+                        followerId: currentUserId,  
+                        followingId: userId          
+                    }
+                }),
+                prisma.notification.create({
+                    data: {
+                        type: "FOLLOW",
+                        userId: userId,            
+                        creatorId: currentUserId,    
+                    }
+                })
+            ]);
+        }
+       
+        revalidatePath('/');
+        return { success: true };
     } catch (error) {
-       console.log("Failed to toggle follow",error);
-       return {success:false,error:"Error Toggling Follow"}
+        console.log("Failed to toggle follow", error);
+        return { success: false, error: "Error Toggling Follow" };
     }
 }
