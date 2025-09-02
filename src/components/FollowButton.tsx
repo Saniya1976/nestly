@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Loader2Icon } from 'lucide-react';
 
-async function FollowButton({userId}: {userId: string}) {
+ function FollowButton({userId}: {userId: string}) {
     const [loading, setLoading] = useState(false);
 
     const handleFollow=async()=>{

@@ -136,6 +136,7 @@ export async function toggleFollow({userId}:{userId:string}){
        }
      return {success: true};
     } catch (error) {
-        toast.error("Failed to toggle follow");
+       console.log("Failed to toggle follow",error);
+       return {success:false,error:"Error Toggling Follow"}
     }
 }

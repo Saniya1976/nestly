@@ -4,11 +4,11 @@ import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Textarea } from "./ui/textarea";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 import { ImageIcon, Loader2, Send } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { createPost } from "@/actions/post.action"; // Import your actual server action
+import { Avatar, AvatarImage } from "./ui/avatar";
 
 function CreatePost() {
     const user = useUser();
@@ -55,7 +55,7 @@ function CreatePost() {
                     <div className="flex gap-4">
                         <Avatar className="w-12 h-12 shrink-0">
                             <AvatarImage 
-                                src={user?.imageUrl || "/avatar.png"} 
+                                src={user?.user?.imageUrl || "/avatar.png"} 
                                 className="rounded-full object-cover"
                             />
                         </Avatar>
