@@ -77,7 +77,7 @@ export async function getPosts() {
       },
     });
 
-    return { success: true, posts };
+    return posts;
   } catch (error) {
     console.log("Error fetching posts:", error);
     throw new Error( "Failed to fetch posts" );
