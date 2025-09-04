@@ -26,3 +26,6 @@ export async function createPost({ content, image }: { content: string; image: s
         };
     }
 }
+export async function getPosts(){
+  
+}
