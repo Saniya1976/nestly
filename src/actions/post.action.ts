@@ -83,3 +83,95 @@ export async function getPosts() {
     throw new Error( "Failed to fetch posts" );
   }
 }
+
+export async function deletePost(postId:string){
+  try {
+    const userId=await getDbUserId();
+    if(!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const post = await prisma.post.findUnique({
+      where: {
+         id: postId,
+      },
+      select: { authorId: true },
+    });
+    if (!post) {
+      throw new Error("Post not found");
+    }
+    if (post.authorId !== userId) {
+      throw new Error("You are not authorized to delete this post");
+    }
+    await prisma.post.delete({
+      where: { id: postId },
+    });
+  
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.log("Error deleting post:", error);
+    throw new Error("Failed to delete post");
+  }
+}
+
+export async function toggleLike(postId: string) {
+  try {
+    const userId = await getDbUserId();
+    if (!userId) return;
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId,
+        },
+      },
+    });
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true },
+    });
+
+    if (!post) throw new Error("Post not found");
+
+    if (existingLike) {
+      // unlike
+      await prisma.like.delete({
+        where: {
+          userId_postId: {
+            userId,
+            postId,
+          },
+        },
+      });
+    } else {
+      // like and create notification (only if liking someone else's post)
+      await prisma.$transaction([
+        prisma.like.create({
+          data: {
+            userId,
+            postId,
+          },
+        }),
+        ...(post.authorId !== userId
+          ? [
+              prisma.notification.create({
+                data: {
+                  type: "LIKE",
+                  userId: post.authorId, // recipient (post author)
+                  creatorId: userId, // person who liked
+                  postId,
+                },
+              }),
+            ]
+          : []),
+      ]);
+    }
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to toggle like:", error);
+    return { success: false, error: "Failed to toggle like" };
+  }
+}
