@@ -1,72 +1,49 @@
-"use client"
-
+// app/notifications/page.tsx  (remove "use client")
 import { getNotifications, markNotificationsAsRead } from "@/actions/notification.action";
 import { NotificationsSkeleton } from "@/components/NotificationSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";  // ✅ use shadcn/ui not radix directly
+import { ScrollArea } from "@/components/ui/scroll-area";      // ✅ same here
 import { formatDistanceToNow } from "date-fns";
-import { get } from "http";
 import { HeartIcon, MessageCircleIcon, UserPlusIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
-type Notifications=Awaited<ReturnType<typeof getNotifications>>;
-type Notification=Notifications[number];
-function notificationPage() {
-    const [Notifications, setNotifications] = useState<Notification[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case "LIKE":
-      return <HeartIcon className="size-4 text-red-500" />;
-    case "COMMENT":
-      return <MessageCircleIcon className="size-4 text-blue-500" />;
-    case "FOLLOW":
-      return <UserPlusIcon className="size-4 text-green-500" />;
-    default:
-      return null;
+export default async function NotificationsPage() {
+  const notifications = await getNotifications();
+  const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+  if (unreadIds.length > 0) {
+    await markNotificationsAsRead(unreadIds);
   }
-};
-    useEffect(() => {
-    const fetchNotifications = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getNotifications();
-        setNotifications(data);
 
-        const unreadIds = data.filter((n) => !n.read).map((n) => n.id);
-        if (unreadIds.length > 0) await markNotificationsAsRead(unreadIds);
-      } catch (error) {
-        toast.error("Failed to fetch notifications");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "LIKE":
+        return <HeartIcon className="size-4 text-red-500" />;
+      case "COMMENT":
+        return <MessageCircleIcon className="size-4 text-blue-500" />;
+      case "FOLLOW":
+        return <UserPlusIcon className="size-4 text-green-500" />;
+      default:
+        return null;
+    }
+  };
 
-    fetchNotifications();
-  }, []);
-   if(isLoading){
-    return <NotificationsSkeleton />
-   }
-return (
+  return (
     <div className="space-y-4">
       <Card>
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <CardTitle>Notifications</CardTitle>
             <span className="text-sm text-muted-foreground">
-              {Notifications.filter((n) => !n.read).length} unread
+              {notifications.filter((n) => !n.read).length} unread
             </span>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-12rem)]">
-            {Notifications.length === 0 ? (
+            {notifications.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">No notifications yet</div>
             ) : (
-              Notifications.map((notification) => (
+              notifications.map((notification) => (
                 <div
                   key={notification.id}
                   className={`flex items-start gap-4 p-4 border-b hover:bg-muted/25 transition-colors ${
@@ -81,7 +58,7 @@ return (
                       {getNotificationIcon(notification.type)}
                       <span>
                         <span className="font-medium">
-                          {notification.creator.name ?? notification.creator.username}
+                          { notification.creator.username}
                         </span>{" "}
                         {notification.type === "FOLLOW"
                           ? "started following you"
@@ -89,6 +66,7 @@ return (
                           ? "liked your post"
                           : "commented on your post"}
                       </span>
+                      
                     </div>
 
                     {notification.post &&
@@ -126,5 +104,3 @@ return (
     </div>
   );
 }
-
-export default notificationPage

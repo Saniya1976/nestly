@@ -33,25 +33,41 @@ export async function syncUser(){
     }
 }
 
-export async function getUserByClerkId(clerkId: string){
-   return prisma.user.findUnique({
-    where:{
-        clerkId,
-    },
-    include:{
-        _count:{
-            select:{
-                posts:true,
-                followers:true,
-                following:true,
-            }
-        }
-
-    }
-   })
+// Create a separate function just for getting the ID
+export async function getDbUserIdByClerkId(clerkId: string) {
+  return prisma.user.findUnique({
+    where: { clerkId },
+    select: { id: true } // Only get what you need
+  });
 }
 
-export async function getDbUserId(){
+// Keep your existing heavy function for when you need full data
+export async function getUserByClerkId(clerkId: string) {
+  return prisma.user.findUnique({
+    where: { clerkId },
+    include: {
+      _count: {
+        select: {
+          posts: true,
+          followers: true,
+          following: true,
+        }
+      }
+    }
+  });
+}
+
+// Update getDbUserId to use the lightweight version
+export async function getDbUserId() {
+  const { userId: clerkId } = await auth();
+  if (!clerkId) return null;
+  
+  const user = await getDbUserIdByClerkId(clerkId);
+  if (!user) throw new Error("User not found");
+  
+  return user.id;
+}
+export async function getDbUserI(){
 const {userId:clerkId}=await auth();
 if(!clerkId) return null;
 const user=await getUserByClerkId(clerkId);
