@@ -49,7 +49,7 @@ function CreatePost() {
     }
 };
     return (
-        <Card className="shadow-sm border-gray-200">
+        <Card className="shadow-sm border-gray-200 mb-4 sm:mb-6">
             <CardContent className="p-6">
                 <div className="space-y-4">
                     <div className="flex gap-4">

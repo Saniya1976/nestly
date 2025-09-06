@@ -11,7 +11,7 @@ import Link from "next/link";
 async function Sidebar() {
     const authUser=await currentUser();
     if(!authUser)return <UnAuthenticatedSidebar />;
-    const user=await getUserByClerkId(authUser.id);
+    const user = await getUserByClerkId(authUser.id);
     if(!user) return null;
   
     return (
