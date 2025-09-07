@@ -85,3 +85,52 @@ export async function getProfilePosts(userId:string){
   
     }
 }
+export async function getUserLikedPosts(userId:string){
+    try {
+        const LikedPosts=await prisma.post.findMany({
+            where:{
+                likes:{
+                    some:{
+                        userId: userId
+                    },
+                }
+            },
+            include:{
+                author:{
+                    select:{
+                        id: true,
+                        name: true,
+                        username: true,
+                        image: true,
+                    }
+                },
+                comments:{
+                    orderBy:{
+                        createdAt:"asc"
+                    },
+                    include:{
+                }
+            },
+            likes:{
+                select:{
+                   userId: true,
+                }
+            },
+            _count:{
+                select:{
+                    comments: true,
+                    likes: true,
+                }
+            }
+          },
+          orderBy: {
+        createdAt: "desc",
+
+            }
+        });
+        return LikedPosts;
+    } catch (error) {
+         console.error("Error fetching liked posts:", error);
+    throw new Error("Failed to fetch liked posts");
+    }
+}
