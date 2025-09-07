@@ -16,6 +16,8 @@ export async function getProfile(username:string){
                 username: true,
                 image: true,
                 bio: true,
+                location: true, 
+                website: true,   
                 createdAt: true,
                _count:{
                 select:{
