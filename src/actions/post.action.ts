@@ -5,7 +5,7 @@ import { getDbUserId } from "./user.action";
 import { revalidatePath } from "next/cache";
 
 // Create Post
-export async function createPost({ content, image }: { content: string; image: string }) {
+export async function createPost({ content, image }: { content: string; image?: string }) {
   try {
     const userId = await getDbUserId();
 
@@ -16,11 +16,12 @@ export async function createPost({ content, image }: { content: string; image: s
     const post = await prisma.post.create({
       data: {
         content,
-        image: image || null, // Handle empty string
+        image: image || null, // This is actually correct
         authorId: userId,
       },
     });
 
+    console.log("✅ Post created with image:", image); // Add this debug log
     revalidatePath("/");
     return { success: true, post };
   } catch (error) {
