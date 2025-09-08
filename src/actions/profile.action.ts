@@ -87,81 +87,94 @@ export async function getProfilePosts(userId:string){
   
     }
 }
-export async function getUserLikedPosts(userId:string){
-    try {
-        const LikedPosts=await prisma.post.findMany({
-            where:{
-                likes:{
-                    some:{
-                        userId: userId
-                    },
-                }
-            },
-            include:{
-                author:{
-                    select:{
-                        id: true,
-                        name: true,
-                        username: true,
-                        image: true,
-                    }
-                },
-                comments:{
-                    orderBy:{
-                        createdAt:"asc"
-                    },
-                    include:{
-                }
-            },
-            likes:{
-                select:{
-                   userId: true,
-                }
-            },
-            _count:{
-                select:{
-                    comments: true,
-                    likes: true,
-                }
-            }
+export async function getUserLikedPosts(userId: string) {
+  try {
+    const LikedPosts = await prisma.post.findMany({
+      where: {
+        likes: {
+          some: {
+            userId: userId,
           },
+        },
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          },
+        },
+        comments: {
           orderBy: {
+            createdAt: "asc",
+          },
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+        likes: {
+          select: {
+            userId: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+          },
+        },
+      },
+      orderBy: {
         createdAt: "desc",
+      },
+    });
 
-            }
-        });
-        return LikedPosts;
-    } catch (error) {
-         console.error("Error fetching liked posts:", error);
+    return LikedPosts;
+  } catch (error) {
+    console.error("Error fetching liked posts:", error);
     throw new Error("Failed to fetch liked posts");
-    }
+  }
 }
-export async function updateProfile({formData }: {formData: FormData }) {
-try {
+
+export async function updateProfile({ formData }: { formData: FormData }) {
+  try {
     const { userId: clerkId } = await auth();
     if (!clerkId) throw new Error("Unauthorized");
-    const name = formData.get("name") as string;
-    const bio = formData.get("bio") as string;
-    const location = formData.get("location") as string;
-    const website = formData.get("website") as string;
+
+    const name = formData.get("name") as string | null;
+    const bio = formData.get("bio") as string | null;
+    const location = formData.get("location") as string | null;
+    const website = formData.get("website") as string | null;
 
     const user = await prisma.user.update({
       where: { clerkId },
       data: {
-        name,
-        bio,
-        location,
-        website,
+        name: name ?? undefined,
+        bio: bio ?? undefined,
+        location: location ?? undefined,
+        website: website ?? undefined,
       },
     });
 
-    revalidatePath("/profile");
-    return {success:true, user};
-} catch (error) {
-      console.error("Error updating profile:", error);
-      return { success: false, error: "Failed to update profile" };
+    // 👇 Revalidate the user's profile page
+    revalidatePath(`/profile/${user.username}`);
+
+    return { success: true, user };
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return { success: false, error: "Failed to update profile" };
+  }
 }
-}
+
 export async function isFollowing(userId:string){
     try {
        const currentUserId = await getDbUserId();
