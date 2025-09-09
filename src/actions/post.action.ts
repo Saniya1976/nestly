@@ -16,7 +16,7 @@ export async function createPost({ content, image }: { content: string; image?: 
     const post = await prisma.post.create({
       data: {
         content,
-        image: image || null, // This is actually correct
+        image: image || null, 
         authorId: userId,
       },
     });

@@ -1,17 +1,16 @@
-'use client';
+"use client";
 
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { Card, CardContent } from "./ui/card";
-import { Textarea } from "./ui/textarea";
-import { ImageIcon, Loader2, Send } from "lucide-react";
-import { Button } from "./ui/button";
-import { toast } from "sonner";
-import { createPost } from "@/actions/post.action";
 import { Avatar, AvatarImage } from "./ui/avatar";
+import { Textarea } from "./ui/textarea";
+import { ImageIcon, Loader2Icon, SendIcon } from "lucide-react";
+import { Button } from "./ui/button";
+import { createPost } from "@/actions/post.action";
+
 import ImageUpload from "./ImageUpload";
-
-
+import { toast } from "sonner";
 
 function CreatePost() {
   const { user } = useUser();
@@ -19,25 +18,23 @@ function CreatePost() {
   const [imageUrl, setImageUrl] = useState("");
   const [isPosting, setIsPosting] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
-  
-  const handleSubmit = async (): Promise<void> => {
+
+  const handleSubmit = async () => {
     if (!content.trim() && !imageUrl) return;
+
     setIsPosting(true);
     try {
-      const result = await createPost({ 
-        content, 
-        image: imageUrl 
+      const result = await createPost({
+        content,
+        image: imageUrl
       });
-      
       if (result?.success) {
+        // reset the form
         setContent("");
         setImageUrl("");
         setShowImageUpload(false);
-        toast.success("Post created successfully!");
-      } else {
-        // Handle error case if needed
-        console.error("Failed to create post:", result?.error);
-        toast.error("Failed to create post");
+
+        toast.success("Post created successfully");
       }
     } catch (error) {
       console.error("Failed to create post:", error);
@@ -48,69 +45,62 @@ function CreatePost() {
   };
 
   return (
-    <Card className="shadow-sm border-gray-200 mb-4 sm:mb-6">
-      <CardContent className="p-6">
+    <Card className="mb-6">
+      <CardContent className="pt-6">
         <div className="space-y-4">
-          <div className="flex gap-4">
-            <Avatar className="w-12 h-12 shrink-0">
-              <AvatarImage 
-                src={user?.imageUrl || "/avatar.png"} 
-                className="rounded-full object-cover"
-                alt="User avatar"
-              />
+          <div className="flex space-x-4">
+            <Avatar className="w-10 h-10">
+              <AvatarImage src={user?.imageUrl || "/avatar.png"} />
             </Avatar>
-            <div className="flex-1">
-              <Textarea
-                placeholder="What's on your mind?"
-                className="min-h-[100px] resize-none border-0 focus-visible:ring-0 bg-gray-50 rounded-lg p-4 text-base placeholder:text-gray-500 focus:bg-white focus:shadow-sm transition-all duration-200"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                disabled={isPosting}
-              />
-            </div>
+            <Textarea
+              placeholder="What's on your mind?"
+              className="min-h-[100px] resize-none border-none focus-visible:ring-0 p-0 text-base"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              disabled={isPosting}
+            />
           </div>
 
           {(showImageUpload || imageUrl) && (
-  <div className="ml-16 border border-gray-200 rounded-lg p-4 bg-gray-50">
-    <ImageUpload
-      value={imageUrl}
-      onChange={(url) => {
-        console.log("Image URL changed:", url); // Debug log
-        setImageUrl(url);
-        if (!url) setShowImageUpload(false); // Close uploader when image is removed
-      }}
-      endpoint="postImage"
-    />
-  </div>
-)}
+            <div className="border rounded-lg p-4">
+              <ImageUpload
+                endpoint="postImage"
+                value={imageUrl}
+                onChange={(url) => {
+                  setImageUrl(url);
+                  if (!url) setShowImageUpload(false);
+                }}
+              />
+            </div>
+          )}
 
-          <div className="flex items-center justify-between ml-16 pt-3 border-t border-gray-100">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between border-t pt-4">
+            <div className="flex space-x-2">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg px-3 py-2 transition-colors duration-200"
+                className="text-muted-foreground hover:text-primary"
                 onClick={() => setShowImageUpload(!showImageUpload)}
                 disabled={isPosting}
               >
-                <ImageIcon className="w-4 h-4 mr-2" />
+                <ImageIcon className="size-4 mr-2" />
                 Photo
               </Button>
             </div>
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6 py-2 font-medium shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-60"
+              className="flex items-center"
               onClick={handleSubmit}
               disabled={(!content.trim() && !imageUrl) || isPosting}
             >
               {isPosting ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2Icon className="size-4 mr-2 animate-spin" />
                   Posting...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4 mr-2" />
+                  <SendIcon className="size-4 mr-2" />
                   Post
                 </>
               )}
@@ -121,5 +111,4 @@ function CreatePost() {
     </Card>
   );
 }
-
 export default CreatePost;

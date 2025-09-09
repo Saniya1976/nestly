@@ -4,7 +4,7 @@ import { UploadDropzone } from "@/lib/uploadthing";
 import { XIcon } from "lucide-react";
 
 interface ImageUploadProps {
-  onChange: (url: string) => void;
+  onChange: (url: string,  imageUrl?:string) => void;
   value: string;
   endpoint: "postImage";
 }
@@ -25,33 +25,47 @@ function ImageUpload({ endpoint, onChange, value }: ImageUploadProps) {
     );
   }
   return (
-    <UploadDropzone
+   <UploadDropzone
   endpoint={endpoint}
   onClientUploadComplete={(res) => {
-    console.log("✅ Upload complete:", res);
+    console.log("Upload complete:", res);
     if (res && res.length > 0 && res[0].url) {
       onChange(res[0].url);
     }
   }}
   onUploadError={(error: Error) => {
-    console.error("❌ Upload error:", error);
-    // Show user-friendly error
-    alert(`Upload failed: ${error.message || 'Please try again'}`);
+    console.error("Upload error:", error);
   }}
   appearance={{
-    label: { color: "#000000" }, // Force black text
-    button: { 
-      backgroundColor: "#2563eb", 
-      color: "white",
-      fontSize: "14px"
+    label: {
+      color: "#374151",
+      fontSize: "16px",
+      fontWeight: "500",
     },
-    allowedContent: { color: "#000000" }, // Force black text
-    container: { 
-      border: "2px dashed #000000", // Black border for visibility
-      backgroundColor: "#f9fafb" // Light gray background
+    button: {
+      backgroundColor: "#2563eb",
+      color: "black",
+      fontSize: "14px",
+      padding: "8px 16px",
+      borderRadius: "6px",
+    },
+    allowedContent: {
+      color: "#6b7280",
+      fontSize: "12px",
+    },
+    container: {
+      border: "2px dashed #d1d5db",
+      borderRadius: "8px",
+      backgroundColor: "#f9fafb",
+      padding: "20px",
+    },
+    uploadIcon: {
+      color: "#2563eb",
+      width: "40px",
+      height: "40px",
     }
   }}
-  className="ut-allowed-content:text-black ut-label:text-black"
+  className="ut-label:font-medium ut-button:bg-blue-600 ut-button:hover:bg-blue-700 ut-button:transition-colors"
 />
   );
 }
