@@ -4,7 +4,7 @@ import { UploadDropzone } from "@/lib/uploadthing";
 import { XIcon } from "lucide-react";
 
 interface ImageUploadProps {
-  onChange: (url: string,  imageUrl?:string) => void;
+  onChange: (url: string) => void;
   value: string;
   endpoint: "postImage";
 }
