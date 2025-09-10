@@ -21,7 +21,7 @@ export async function createPost({ content, image }: { content: string; image?: 
       },
     });
 
-    console.log("✅ Post created with image:", image); // Add this debug log
+  
     revalidatePath("/");
     return { success: true, post };
   } catch (error) {

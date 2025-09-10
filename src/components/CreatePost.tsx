@@ -19,14 +19,17 @@ function CreatePost() {
   const [isPosting, setIsPosting] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!content.trim() && !imageUrl) return;
+  const handleSubmit = async (autoContent?: string, autoImageUrl?: string) => {
+    const finalContent = autoContent ?? content;
+    const finalImageUrl = autoImageUrl ?? imageUrl;
+    
+    if (!finalContent.trim() && !finalImageUrl) return;
 
     setIsPosting(true);
     try {
       const result = await createPost({
-        content,
-        image: imageUrl
+        content: finalContent,
+        image: finalImageUrl
       });
       if (result?.success) {
         // reset the form
@@ -41,6 +44,18 @@ function CreatePost() {
       toast.error("Failed to create post");
     } finally {
       setIsPosting(false);
+    }
+  };
+
+  // Handle image upload completion - auto-post
+  const handleImageUpload = async (url: string) => {
+    if (url) {
+      setImageUrl(url);
+      // Auto-create post with current content and the new image
+      await handleSubmit(content, url);
+    } else {
+      setImageUrl("");
+      setShowImageUpload(false);
     }
   };
 
@@ -66,10 +81,7 @@ function CreatePost() {
               <ImageUpload
                 endpoint="postImage"
                 value={imageUrl}
-                onChange={(url) => {
-                  setImageUrl(url);
-                  if (!url) setShowImageUpload(false);
-                }}
+                onChange={handleImageUpload}
               />
             </div>
           )}
@@ -90,7 +102,7 @@ function CreatePost() {
             </div>
             <Button
               className="flex items-center"
-              onClick={handleSubmit}
+              onClick={() => handleSubmit()}
               disabled={(!content.trim() && !imageUrl) || isPosting}
             >
               {isPosting ? (
