@@ -19,18 +19,13 @@ function CreatePost() {
   const [isPosting, setIsPosting] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
 
-  const handleSubmit = async (autoContent?: string, autoImageUrl?: string) => {
-    const finalContent = autoContent ?? content;
-    const finalImageUrl = autoImageUrl ?? imageUrl;
-    
-    if (!finalContent.trim() && !finalImageUrl) return;
+  const handleSubmit = async () => {
+    if (!content.trim() && !imageUrl) return;
 
     setIsPosting(true);
     try {
-      const result = await createPost({
-        content: finalContent,
-        image: finalImageUrl
-      });
+      const result = await createPost({ content, image: imageUrl });
+;
       if (result?.success) {
         // reset the form
         setContent("");
@@ -44,18 +39,6 @@ function CreatePost() {
       toast.error("Failed to create post");
     } finally {
       setIsPosting(false);
-    }
-  };
-
-  // Handle image upload completion - auto-post
-  const handleImageUpload = async (url: string) => {
-    if (url) {
-      setImageUrl(url);
-      // Auto-create post with current content and the new image
-      await handleSubmit(content, url);
-    } else {
-      setImageUrl("");
-      setShowImageUpload(false);
     }
   };
 
@@ -77,15 +60,18 @@ function CreatePost() {
           </div>
 
           {(showImageUpload || imageUrl) && (
-            <div className="border rounded-lg p-4">
-              <ImageUpload
-                endpoint="postImage"
-                value={imageUrl}
-                onChange={handleImageUpload}
-              />
-            </div>
-          )}
-
+  <div className="border rounded-lg p-4">
+    <ImageUpload
+      endpoint="postImage"
+      value={imageUrl}
+      onChange={(url) => {
+        setImageUrl(url);
+        if (!url) setShowImageUpload(false);
+      }}
+    />
+  
+  </div>
+)}
           <div className="flex items-center justify-between border-t pt-4">
             <div className="flex space-x-2">
               <Button
@@ -102,7 +88,7 @@ function CreatePost() {
             </div>
             <Button
               className="flex items-center"
-              onClick={() => handleSubmit()}
+              onClick={handleSubmit}
               disabled={(!content.trim() && !imageUrl) || isPosting}
             >
               {isPosting ? (

@@ -1,24 +1,31 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { getDbUserId } from "@/actions/user.action";
+import { auth } from "@clerk/nextjs/server";
 
 const f = createUploadthing();
 
 export const ourFileRouter = {
-  postImage: f({ image: { maxFileSize: "4MB" } })
+  // define routes for different upload types
+  postImage: f({
+    image: {
+      maxFileSize: "4MB",
+      maxFileCount: 1,
+    },
+  })
     .middleware(async () => {
-      const userId = await getDbUserId();
+      // this code runs on your server before upload
+      const { userId } = await auth();
       if (!userId) throw new Error("Unauthorized");
+
+      // whatever is returned here is accessible in onUploadComplete as `metadata`
       return { userId };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Upload complete for user:", metadata.userId);
-      console.log("File URL:", file.url);
-      return { 
-        uploadedBy: metadata.userId,
-        url: file.url,           
-        key: file.key,         
-        name: file.name          
-      };
+      try {
+        return { fileUrl: file.url };
+      } catch (error) {
+        console.error("Error in onUploadComplete:", error);
+        throw error;
+      }
     }),
 } satisfies FileRouter;
 
