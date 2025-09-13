@@ -5,10 +5,9 @@ import { useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
-import { ImageIcon, Loader2Icon, SendIcon } from "lucide-react";
+import { ImageIcon, Loader2Icon, SendIcon, SparklesIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { createPost } from "@/actions/post.action";
-
 import ImageUpload from "./ImageUpload";
 import { toast } from "sonner";
 
@@ -19,19 +18,19 @@ function CreatePost() {
   const [isPosting, setIsPosting] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
 
+
+ 
+
   const handleSubmit = async () => {
     if (!content.trim() && !imageUrl) return;
 
     setIsPosting(true);
     try {
       const result = await createPost({ content, image: imageUrl });
-;
       if (result?.success) {
-        // reset the form
         setContent("");
         setImageUrl("");
         setShowImageUpload(false);
-
         toast.success("Post created successfully");
       }
     } catch (error) {
@@ -50,30 +49,38 @@ function CreatePost() {
             <Avatar className="w-10 h-10">
               <AvatarImage src={user?.imageUrl || "/avatar.png"} />
             </Avatar>
-            <Textarea
-              placeholder="What's on your mind?"
-              className="min-h-[100px] resize-none border-none focus-visible:ring-0 p-0 text-base"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              disabled={isPosting}
-            />
+            <div className="flex-1 space-y-3">
+              <Textarea
+                placeholder="What's on your mind?"
+                className="min-h-[100px] resize-none border-none focus-visible:ring-0 p-0 text-base"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                disabled={isPosting}
+              />
+              
+              {/* AI GENERATE BUTTON */}
+              {content.trim() && (
+                <div className="flex justify-end">
+                  
+                </div>
+              )}
+            </div>
           </div>
 
           {(showImageUpload || imageUrl) && (
-  <div className="border rounded-lg p-4">
-  <ImageUpload
-  value={imageUrl}
-  onChange={(url) => {
-    console.log("Cloudinary URL received:", url);
-    setImageUrl(url);
-    if (url) {
-      setShowImageUpload(true);
-    }
-  }}
-/>
-  
-  </div>
-)}
+            <div className="border rounded-lg p-4">
+              <ImageUpload
+                value={imageUrl}
+                onChange={(url) => {
+                  setImageUrl(url);
+                  if (url) {
+                    setShowImageUpload(true);
+                  }
+                }}
+              />
+            </div>
+          )}
+
           <div className="flex items-center justify-between border-t pt-4">
             <div className="flex space-x-2">
               <Button
@@ -111,4 +118,5 @@ function CreatePost() {
     </Card>
   );
 }
+
 export default CreatePost;
