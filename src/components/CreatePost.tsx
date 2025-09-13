@@ -61,11 +61,14 @@ function CreatePost() {
 
           {(showImageUpload || imageUrl) && (
   <div className="border rounded-lg p-4">
-    <ImageUpload
+  <ImageUpload
   value={imageUrl}
   onChange={(url) => {
-    console.log("Image URL changed:", url);
+    console.log("Cloudinary URL received:", url);
     setImageUrl(url);
+    if (url) {
+      setShowImageUpload(true);
+    }
   }}
 />
   

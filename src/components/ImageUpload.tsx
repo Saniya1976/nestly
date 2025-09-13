@@ -14,13 +14,12 @@ function ImageUpload({ onChange, value }: ImageUploadProps) {
   const handleFileUpload = async (file: File) => {
     if (!file) return;
 
-    // Validate file type and size
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file');
       return;
     }
 
-    if (file.size > 4 * 1024 * 1024) { // 4MB limit
+    if (file.size > 4 * 1024 * 1024) {
       alert('File size must be less than 4MB');
       return;
     }
@@ -30,21 +29,28 @@ function ImageUpload({ onChange, value }: ImageUploadProps) {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+      
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
 
       const data = await response.json();
       
-      if (data.success && data.url) {
-        onChange(data.url);
+      if (data.secure_url) {
+        onChange(data.secure_url);
       } else {
-        throw new Error(data.error || 'Upload failed');
+        throw new Error('Upload failed - no URL returned');
       }
     } catch (error) {
-      console.error('Upload error:', error);
       alert('Failed to upload image. Please try again.');
     } finally {
       setIsUploading(false);
@@ -56,6 +62,7 @@ function ImageUpload({ onChange, value }: ImageUploadProps) {
     if (file) {
       handleFileUpload(file);
     }
+    e.target.value = '';
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -66,14 +73,23 @@ function ImageUpload({ onChange, value }: ImageUploadProps) {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
   if (value) {
     return (
       <div className="relative size-40">
-        <img src={value} alt="Upload" className="rounded-md size-40 object-cover" />
+        <img 
+          src={value} 
+          alt="Uploaded preview" 
+          className="rounded-md size-40 object-cover border"
+        />
         <button
           onClick={() => onChange("")}
-          className="absolute top-0 right-0 p-1 bg-red-500 rounded-full shadow-sm"
+          className="absolute top-0 right-0 p-1 bg-red-500 rounded-full shadow-sm hover:bg-red-600 transition-colors"
           type="button"
+          disabled={isUploading}
         >
           <XIcon className="h-4 w-4 text-white" />
         </button>
@@ -81,41 +97,43 @@ function ImageUpload({ onChange, value }: ImageUploadProps) {
     );
   }
 
-  return (
-    <div
-      onDrop={handleDrop}
-      onDragOver={(e) => e.preventDefault()}
-      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
-    >
-      <input
-        type="file"
-        id="file-upload"
-        accept="image/*"
-        onChange={handleFileSelect}
-        className="hidden"
-        disabled={isUploading}
-      />
-      
-      <label htmlFor="file-upload" className="cursor-pointer">
-        {isUploading ? (
-          <div className="flex flex-col items-center">
-            <Loader2 className="h-8 w-8 text-blue-600 animate-spin mb-2" />
-            <p className="text-sm text-gray-600">Uploading...</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <UploadIcon className="h-8 w-8 text-gray-400 mb-2" />
-            <p className="text-sm font-medium text-gray-700">
+ return (
+  <div
+    onDrop={handleDrop}
+    onDragOver={handleDragOver}
+    className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center bg-white dark:bg-[#121212] transition-colors cursor-pointer"
+  >
+    <input
+      type="file"
+      id="file-upload"
+      accept="image/*"
+      onChange={handleFileSelect}
+      className="hidden"
+      disabled={isUploading}
+    />
+    
+    <label htmlFor="file-upload" className="cursor-pointer block">
+      {isUploading ? (
+        <div className="flex flex-col items-center space-y-2">
+          <Loader2 className="h-6 w-6 text-gray-600 dark:text-gray-500 animate-spin" />
+          <p className="text-sm text-gray-600 dark:text-gray-300">Uploading...</p>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center space-y-3">
+          <UploadIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               Choose a file or drag and drop
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Image (4MB)
             </p>
           </div>
-        )}
-      </label>
-    </div>
-  );
+        </div>
+      )}
+    </label>
+  </div>
+);
 }
 
 export default ImageUpload;
