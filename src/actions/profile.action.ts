@@ -4,35 +4,40 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getDbUserId } from "./user.action";
 import { auth } from "@clerk/nextjs/server";
-export async function getProfile(username:string){
-    try {
-        const profile=await prisma.user.findUnique({
-            where:{
-               username: username
-            },
-            select:{
-                id: true,
-                name: true,
-                username: true,
-                image: true,
-                bio: true,
-                location: true, 
-                website: true,   
-                createdAt: true,
-               _count:{
-                select:{
-                    followers: true,
-                    following: true,
-                    posts: true,
-                }
-               }
-            }
-        });
-        return profile;
-    } catch (error) {
-        console.error("Error fetching profile:", error);
-        throw new Error("Failed to fetch profile");
-    }
+export async function getProfile(username: string) {
+  try {
+    // FIX: Handle URL encoding and case sensitivity
+    const decodedUsername = decodeURIComponent(username);
+    const normalizedUsername = decodedUsername.toLowerCase().trim();
+    
+    const profile = await prisma.user.findUnique({
+      where: {
+        username: normalizedUsername
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        image: true,
+        bio: true,
+        location: true, 
+        website: true,   
+        createdAt: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+            posts: true,
+          }
+        }
+      }
+    });
+    
+    return profile;
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    throw new Error("Failed to fetch profile");
+  }
 }
 export async function getProfilePosts(userId:string){
     try {
