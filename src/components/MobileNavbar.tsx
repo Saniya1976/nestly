@@ -20,9 +20,11 @@ function MobileNavbar() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { isSignedIn } = useAuth();
   const { theme, setTheme } = useTheme();
-const { user } = useUser(); 
+  const { user } = useUser();
+
   return (
     <div className="flex md:hidden items-center space-x-2">
+      {/* Theme toggle */}
       <Button
         variant="ghost"
         size="icon"
@@ -34,17 +36,21 @@ const { user } = useUser();
         <span className="sr-only">Toggle theme</span>
       </Button>
 
+      {/* Mobile menu */}
       <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon">
             <MenuIcon className="h-5 w-5" />
           </Button>
         </SheetTrigger>
+
         <SheetContent side="right" className="w-[300px]">
           <SheetHeader>
             <SheetTitle>Menu</SheetTitle>
           </SheetHeader>
+
           <nav className="flex flex-col space-y-4 mt-6">
+            {/* Home always visible */}
             <Button variant="ghost" className="flex items-center gap-3 justify-start" asChild>
               <Link href="/">
                 <HomeIcon className="w-4 h-4" />
@@ -54,26 +60,35 @@ const { user } = useUser();
 
             {isSignedIn ? (
               <>
+                {/* Notifications */}
                 <Button variant="ghost" className="flex items-center gap-3 justify-start" asChild>
                   <Link href="/notifications">
                     <BellIcon className="w-4 h-4" />
                     Notifications
                   </Link>
                 </Button>
+
+                {/* Profile (safe username fallback) */}
                 <Button variant="ghost" className="flex items-center gap-3 justify-start" asChild>
-                  <Link href={user ? `/profile/${user.username}` : "/profile"}>
+                  <Link href={`/profile/${user?.username ?? user?.id ?? "me"}`}>
                     <UserIcon className="w-4 h-4" />
                     Profile
                   </Link>
                 </Button>
+
+                {/* Logout */}
                 <SignOutButton>
-                  <Button variant="ghost" className="flex items-center gap-3 justify-start w-full">
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-3 justify-start w-full"
+                  >
                     <LogOutIcon className="w-4 h-4" />
                     Logout
                   </Button>
                 </SignOutButton>
               </>
             ) : (
+              /* Sign In (only mounts if not signed in, avoids Clerk error) */
               <SignInButton mode="modal">
                 <Button variant="default" className="w-full">
                   Sign In
