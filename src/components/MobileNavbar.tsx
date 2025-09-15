@@ -78,14 +78,14 @@ function MobileNavbar() {
 
                 {/* Logout */}
                 <SignOutButton>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-3 justify-start w-full"
-                  >
-                    <LogOutIcon className="w-4 h-4" />
-                    Logout
+                <Button asChild variant="ghost" className="flex items-center gap-3 justify-start w-full">
+                 <span>
+               <LogOutIcon className="w-4 h-4" />
+                Logout
+                </span>
                   </Button>
-                </SignOutButton>
+              </SignOutButton>
+
               </>
             ) : (
               /* Sign In (only mounts if not signed in, avoids Clerk error) */
