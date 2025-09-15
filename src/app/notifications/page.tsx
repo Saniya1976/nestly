@@ -1,4 +1,6 @@
 // app/notifications/page.tsx  (remove "use client")
+export const dynamic = "force-dynamic";
+
 import { getNotifications, markNotificationsAsRead } from "@/actions/notification.action";
 import { NotificationsSkeleton } from "@/components/NotificationSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
