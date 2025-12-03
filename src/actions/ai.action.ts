@@ -11,13 +11,18 @@ const groq = new Groq({
  */
 export async function generateCaptionFromText(prompt: string) {
   try {
+    console.log("🚀 Starting caption generation for:", prompt);
+    
     if (!prompt.trim()) {
       return { success: false, error: "Prompt cannot be empty" };
     }
 
     if (!process.env.GROQ_API_KEY) {
+      console.error("❌ GROQ_API_KEY is missing!");
       return { success: false, error: "AI service not configured. Please add GROQ_API_KEY to .env.local" };
     }
+
+    console.log("✅ API Key found, making request...");
 
     const completion = await groq.chat.completions.create({
       messages: [
@@ -46,18 +51,50 @@ Write like a real person, not a bot.`,
       top_p: 0.95,
     });
 
+    console.log("✅ Got response from Groq");
+
     const caption = completion.choices[0]?.message?.content?.trim() || "";
 
     if (!caption) {
       throw new Error("No caption generated");
     }
 
+    console.log("✅ Caption generated successfully:", caption);
     return { success: true, caption };
   } catch (error: any) {
-    console.error("Error generating caption from text:", error);
+    console.error("❌ Error generating caption from text:", error);
+    console.error("Error details:", {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type: error.type
+    });
+    
+    // More specific error messages
+    if (error.status === 401) {
+      return {
+        success: false,
+        error: "Invalid API key. Please check your GROQ_API_KEY",
+      };
+    }
+    
+    if (error.status === 429) {
+      return {
+        success: false,
+        error: "Rate limit exceeded. Please wait a moment and try again",
+      };
+    }
+    
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      return {
+        success: false,
+        error: "Network error. Please check your internet connection",
+      };
+    }
+    
     return {
       success: false,
-      error: error.message || "Failed to generate caption",
+      error: error.message || "Failed to generate caption. Please try again",
     };
   }
 }
