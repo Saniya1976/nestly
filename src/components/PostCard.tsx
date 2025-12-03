@@ -12,21 +12,38 @@ import { Button } from './ui/button';
 import { HeartIcon, LogInIcon, MessageCircleIcon, SendIcon } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 
-type Posts=Awaited<ReturnType<typeof getPosts>>;
-type Post=Posts[number];
+type Posts = Awaited<ReturnType<typeof getPosts>>;
+type Post = Posts[number];
 
-function PostCard({ post, dbUserId }:{post:Post, dbUserId:string | null}) {
-  const {user}=useUser();
+interface PostCardProps {
+  post: Post;
+  dbUserId?: string | null; // Profile owner ID (from ProfilePageClient)
+  currentUserId?: string; // Current logged-in user ID (passed from parent)
+  onDelete?: (postId: string) => void; // Optional delete callback
+  showDelete?: boolean; // Control whether to show delete button
+}
+
+function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }: PostCardProps) {
+  const { user } = useUser();
+  
+  // Use currentUserId from props or fallback to Clerk user ID
+  const actualCurrentUserId = currentUserId || user?.id;
+  
   const [newComment, setNewComment] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [hasLiked, setHasLiked] = useState(post.likes.some((like) => like.userId === dbUserId));
+  
+  // Check if current user has liked this post
+  const [hasLiked, setHasLiked] = useState(
+    post.likes.some((like) => like.userId === actualCurrentUserId)
+  );
+  
   const [optimisticLikes, setOptimisticLikes] = useState(post._count.likes || 0);
   const [showComments, setShowComments] = useState(false);
 
   const handleLike = async () => {
-    if (isLiking || !user) return; // Prevent multiple clicks and ensure user exists
+    if (isLiking || !user) return;
     
     setIsLiking(true);
     
@@ -70,15 +87,27 @@ function PostCard({ post, dbUserId }:{post:Post, dbUserId:string | null}) {
     if (isDeleting) return;
     try {
       setIsDeleting(true);
-      const result = await deletePost(post.id);
-      if (result.success) toast.success("Post deleted successfully");
-      else throw new Error("Failed to delete post");
+      
+      // Use callback if provided, otherwise use direct delete action
+      if (onDelete) {
+        await onDelete(post.id);
+      } else {
+        const result = await deletePost(post.id);
+        if (result.success) {
+          toast.success("Post deleted successfully");
+        } else {
+          throw new Error("Failed to delete post");
+        }
+      }
     } catch (error) {
       toast.error("Failed to delete post");
     } finally {
       setIsDeleting(false);
     }
   };
+
+  // Determine if delete button should be shown
+  const shouldShowDelete = showDelete && actualCurrentUserId === post.author.id;
 
   return (
     <Card className='overflow-hidden mb-6'>
@@ -106,8 +135,8 @@ function PostCard({ post, dbUserId }:{post:Post, dbUserId:string | null}) {
                     <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
                   </div>
                 </div>
-                {/* Check if current user is the post author */}
-                {dbUserId === post.author.id && (
+                {/* Check if current user is the post author AND showDelete is true */}
+                {shouldShowDelete && (
                   <DeleteAlertDialog isDeleting={isDeleting} onDelete={handleDelete} />
                 )}
               </div>
@@ -130,6 +159,7 @@ function PostCard({ post, dbUserId }:{post:Post, dbUserId:string | null}) {
                   hasLiked ? "text-red-500 hover:text-red-600" : "hover:text-red-500"
                 }`}
                 onClick={handleLike}
+                disabled={isLiking}
               >
                 {hasLiked ? (
                   <HeartIcon className="size-5 fill-current" />
