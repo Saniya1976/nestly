@@ -1,163 +1,3 @@
-// "use server";
-
-// import Groq from "groq-sdk";
-
-// const groq = new Groq({
-//   apiKey: process.env.GROQ_API_KEY,
-// });
-
-// /**
-//  * Generate caption from text prompt
-//  */
-// export async function generateCaptionFromText(prompt: string) {
-//   try {
-//     console.log("🚀 Starting caption generation for:", prompt);
-    
-//     if (!prompt.trim()) {
-//       return { success: false, error: "Prompt cannot be empty" };
-//     }
-
-//     if (!process.env.GROQ_API_KEY) {
-//       console.error("❌ GROQ_API_KEY is missing!");
-//       return { success: false, error: "AI service not configured. Please add GROQ_API_KEY to .env.local" };
-//     }
-
-//     console.log("✅ API Key found, making request...");
-
-//     const completion = await groq.chat.completions.create({
-//       messages: [
-//         {
-//           role: "system",
-//           content: `You are an expert social media content creator. Write SHORT, punchy, engaging captions.
-
-// RULES:
-// - Maximum 2 sentences or 25 words
-// - Be conversational and natural
-// - No clichés, no corporate speak
-// - No hashtags unless requested
-// - Start with impact
-// - Be authentic and relatable
-
-// Write like a real person, not a bot.`,
-//         },
-//         {
-//           role: "user",
-//           content: `Write a SHORT social media caption (max 2 sentences) about: ${prompt}`,
-//         },
-//       ],
-//       model: "llama-3.3-70b-versatile",
-//       temperature: 0.9,
-//       max_tokens: 150,
-//       top_p: 0.95,
-//     });
-
-//     console.log("✅ Got response from Groq");
-
-//     const caption = completion.choices[0]?.message?.content?.trim() || "";
-
-//     if (!caption) {
-//       throw new Error("No caption generated");
-//     }
-
-//     console.log("✅ Caption generated successfully:", caption);
-//     return { success: true, caption };
-//   } catch (error: any) {
-//     console.error("❌ Error generating caption from text:", error);
-//     console.error("Error details:", {
-//       message: error.message,
-//       status: error.status,
-//       code: error.code,
-//       type: error.type
-//     });
-    
-//     // More specific error messages
-//     if (error.status === 401) {
-//       return {
-//         success: false,
-//         error: "Invalid API key. Please check your GROQ_API_KEY",
-//       };
-//     }
-    
-//     if (error.status === 429) {
-//       return {
-//         success: false,
-//         error: "Rate limit exceeded. Please wait a moment and try again",
-//       };
-//     }
-    
-//     if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-//       return {
-//         success: false,
-//         error: "Network error. Please check your internet connection",
-//       };
-//     }
-    
-//     return {
-//       success: false,
-//       error: error.message || "Failed to generate caption. Please try again",
-//     };
-//   }
-// }
-
-// /**
-//  * Improve existing caption - make it shorter and punchier
-//  */
-// export async function improveCaption(currentCaption: string) {
-//   try {
-//     if (!currentCaption.trim()) {
-//       return { success: false, error: "Caption cannot be empty" };
-//     }
-
-//     if (!process.env.GROQ_API_KEY) {
-//       return { success: false, error: "AI service not configured. Please add GROQ_API_KEY to .env.local" };
-//     }
-
-//     const completion = await groq.chat.completions.create({
-//       messages: [
-//         {
-//           role: "system",
-//           content: `You are a social media editor who makes captions SHORTER and MORE IMPACTFUL.
-
-// RULES:
-// - Make it CRISP (maximum 2 sentences or 25 words)
-// - Keep the original meaning
-// - More punchy and engaging
-// - Remove fluff and filler words
-// - No clichés
-// - Natural and conversational
-
-// Transform boring into brilliant, but keep it SHORT.`,
-//         },
-//         {
-//           role: "user",
-//           content: `Make this caption SHORTER and more impactful (max 2 sentences):
-
-// "${currentCaption}"
-
-// Just give me the improved caption, nothing else.`,
-//         },
-//       ],
-//       model: "llama-3.3-70b-versatile",
-//       temperature: 0.7,
-//       max_tokens: 150,
-//       top_p: 0.9,
-//     });
-
-//     const caption = completion.choices[0]?.message?.content?.trim() || "";
-
-//     if (!caption) {
-//       throw new Error("No improved caption generated");
-//     }
-
-//     return { success: true, caption };
-//   } catch (error: any) {
-//     console.error("Error improving caption:", error);
-//     return {
-//       success: false,
-//       error: error.message || "Failed to improve caption",
-//     };
-//   }
-// }
 "use server";
 
 import Groq from "groq-sdk";
@@ -166,206 +6,99 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-/**
- * Generate caption from text prompt
- */
-export async function generateCaptionFromText(prompt: string) {
-  let startTime = Date.now();
+function analyzeUserRequest(prompt: string) {
+  const promptLower = prompt.toLowerCase();
   
+  return {
+    lines: promptLower.includes('1 line') ? 1 : 
+           promptLower.includes('2 line') ? 2 : 
+           promptLower.includes('3 line') ? 3 : 2,
+    style: promptLower.includes('funny') ? 'funny' :
+           promptLower.includes('inspir') ? 'inspirational' :
+           promptLower.includes('profession') ? 'professional' : 'engaging',
+    includeEmojis: !promptLower.includes('no emoji')
+  };
+}
+
+export async function generateCaptionFromText(prompt: string) {
   try {
-    console.log("🚀 Starting caption generation for:", prompt);
-    console.log("📱 Client environment check - Timestamp:", new Date().toISOString());
-    
     if (!prompt.trim()) {
-      return { success: false, error: "Prompt cannot be empty" };
+      return { success: false, error: "Please enter what you want to post about" };
     }
 
     if (!process.env.GROQ_API_KEY) {
-      console.error("❌ GROQ_API_KEY is missing!");
-      return { 
-        success: false, 
-        error: "AI service not configured. Please add GROQ_API_KEY to .env.local" 
-      };
+      return { success: false, error: "AI service not configured" };
     }
 
-    console.log("✅ API Key found, making request...");
+    const requirements = analyzeUserRequest(prompt);
     
-    // Add timeout for mobile connections
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-    
-    try {
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert social media content creator. Write SHORT, punchy, engaging captions.
-
-RULES:
-- Maximum 2 sentences or 25 words
-- Be conversational and natural
-- No clichés, no corporate speak
-- No hashtags unless requested
-- Start with impact
-- Be authentic and relatable
-
-Write like a real person, not a bot.`,
-          },
-          {
-            role: "user",
-            content: `Write a SHORT social media caption (max 2 sentences) about: ${prompt}`,
-          },
-        ],
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.9,
-        max_tokens: 150,
-        top_p: 0.95,
-      });
-
-      clearTimeout(timeoutId);
-      
-      console.log("✅ Got response from Groq");
-      console.log("⏱️ Response time:", Date.now() - startTime, "ms");
-
-      const caption = completion.choices[0]?.message?.content?.trim() || "";
-
-      if (!caption) {
-        throw new Error("No caption generated");
-      }
-
-      console.log("✅ Caption generated successfully:", caption.substring(0, 100));
-      return { success: true, caption };
-      
-    } catch (groqError: any) {
-      clearTimeout(timeoutId);
-      throw groqError;
-    }
-  } catch (error: any) {
-    console.error("❌ Error generating caption from text:", error);
-    console.error("❌ Error details:", {
-      name: error.name,
-      message: error.message,
-      status: error.status,
-      code: error.code,
-      type: error.type,
-      stack: error.stack?.split('\n')[0]
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: `Write a ${requirements.style} social media caption (${requirements.lines} lines max). ${requirements.includeEmojis ? 'Add 1-2 relevant emojis.' : 'No emojis.'} Be direct and engaging. Just write the caption.`,
+        },
+        {
+          role: "user",
+          content: `Topic: ${prompt}`,
+        },
+      ],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.85,
+      max_tokens: 100,
     });
-    
-    // More specific error messages for mobile
-    if (error.name === 'AbortError') {
-      return {
-        success: false,
-        error: "Request timed out. Mobile network may be slow. Try again.",
-      };
+
+    const caption = completion.choices[0]?.message?.content?.trim() || "";
+
+    if (!caption) {
+      return { success: false, error: "Could not generate caption" };
     }
-    
-    if (error.status === 401) {
-      return {
-        success: false,
-        error: "Invalid API key. Please check your GROQ_API_KEY",
-      };
-    }
-    
-    if (error.status === 429) {
-      return {
-        success: false,
-        error: "Rate limit exceeded. Please wait a moment and try again",
-      };
-    }
-    
-    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-      return {
-        success: false,
-        error: "Network error. Please check your internet connection",
-      };
-    }
-    
-    if (error.message?.includes('fetch')) {
-      return {
-        success: false,
-        error: "Network error. Check mobile data/WiFi connection.",
-      };
-    }
-    
+
+    return { success: true, caption };
+  } catch (error: any) {
+    console.error("Error:", error);
     return {
       success: false,
-      error: "Failed to generate caption. Please try again",
+      error: error.message || "Failed to generate caption",
     };
   }
 }
 
-/**
- * Improve existing caption - make it shorter and punchier
- */
 export async function improveCaption(currentCaption: string) {
   try {
     if (!currentCaption.trim()) {
-      return { success: false, error: "Caption cannot be empty" };
+      return { success: false, error: "Please enter a caption to improve" };
     }
 
     if (!process.env.GROQ_API_KEY) {
-      return { success: false, error: "AI service not configured. Please add GROQ_API_KEY to .env.local" };
+      return { success: false, error: "AI service not configured" };
     }
 
-    // Add timeout for mobile
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: `Improve this social media caption to be more impactful and concise. Keep it 1-2 lines max. Remove filler words. Write naturally. Just give the improved version.`,
+        },
+        {
+          role: "user",
+          content: `Improve: "${currentCaption}"`,
+        },
+      ],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.8,
+      max_tokens: 100,
+    });
 
-    try {
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: `You are a social media editor who makes captions SHORTER and MORE IMPACTFUL.
+    const caption = completion.choices[0]?.message?.content?.trim() || "";
 
-RULES:
-- Make it CRISP (maximum 2 sentences or 25 words)
-- Keep the original meaning
-- More punchy and engaging
-- Remove fluff and filler words
-- No clichés
-- Natural and conversational
-
-Transform boring into brilliant, but keep it SHORT.`,
-          },
-          {
-            role: "user",
-            content: `Make this caption SHORTER and more impactful (max 2 sentences):
-
-"${currentCaption}"
-
-Just give me the improved caption, nothing else.`,
-          },
-        ],
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.7,
-        max_tokens: 150,
-        top_p: 0.9,
-      });
-
-      clearTimeout(timeoutId);
-      
-      const caption = completion.choices[0]?.message?.content?.trim() || "";
-
-      if (!caption) {
-        throw new Error("No improved caption generated");
-      }
-
-      return { success: true, caption };
-    } catch (groqError: any) {
-      clearTimeout(timeoutId);
-      throw groqError;
+    if (!caption) {
+      return { success: false, error: "Could not improve caption" };
     }
+
+    return { success: true, caption };
   } catch (error: any) {
-    console.error("Error improving caption:", error);
-    
-    if (error.name === 'AbortError') {
-      return {
-        success: false,
-        error: "Request timed out. Mobile network may be slow. Try again.",
-      };
-    }
-    
+    console.error("Error:", error);
     return {
       success: false,
       error: error.message || "Failed to improve caption",
