@@ -115,11 +115,11 @@ function CreatePost() {
 
           {/* AI PROMPT SECTION */}
           {showAIPrompt && (
-            <div className="border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 space-y-3">
+            <div className="border rounded-lg p-4 bg-white dark:bg-zinc-900 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <SparklesIcon className="size-5 text-purple-600 dark:text-purple-400" />
-                  <span className="font-medium text-sm">AI Caption Generator</span>
+                  <SparklesIcon className="size-5 text-black dark:text-white" />
+                  <span className="font-medium text-sm text-black dark:text-white">AI Caption Generator</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -129,6 +129,7 @@ function CreatePost() {
                     setAiPrompt("");
                   }}
                   disabled={isGenerating}
+                  className="text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/10"
                 >
                   <XIcon className="size-4" />
                 </Button>
@@ -139,6 +140,7 @@ function CreatePost() {
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 disabled={isGenerating}
+                className="bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/20 text-black dark:text-white placeholder:text-black/60 dark:placeholder:text-white/60"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -151,7 +153,7 @@ function CreatePost() {
                 size="sm"
                 onClick={handleGenerateFromText}
                 disabled={isGenerating || !aiPrompt.trim()}
-                className="w-full"
+                className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-black/90 dark:hover:bg-white/90"
               >
                 {isGenerating ? (
                   <>
