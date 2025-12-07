@@ -17,17 +17,18 @@ type Post = Posts[number];
 
 interface PostCardProps {
   post: Post;
-  dbUserId?: string | null; // Profile owner ID (from ProfilePageClient)
-  currentUserId?: string; // Current logged-in user ID (passed from parent)
-  onDelete?: (postId: string) => void; // Optional delete callback
-  showDelete?: boolean; // Control whether to show delete button
+  dbUserId?: string | null; // Current logged-in user's database ID
+  currentUserId?: string; // Alternative: Clerk user ID (deprecated in favor of dbUserId)
+  onDelete?: (postId: string) => void;
+  showDelete?: boolean;
 }
 
 function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }: PostCardProps) {
   const { user } = useUser();
   
-  // Use currentUserId from props or fallback to Clerk user ID
-  const actualCurrentUserId = currentUserId || user?.id;
+  // Determine the actual current user's database ID
+  // Priority: dbUserId (database ID) > currentUserId (for backwards compatibility)
+  const actualCurrentUserId = dbUserId || currentUserId;
   
   const [newComment, setNewComment] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
@@ -47,18 +48,15 @@ function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }
     
     setIsLiking(true);
     
-    // Store current states for rollback
     const previousHasLiked = hasLiked;
     const previousOptimisticLikes = optimisticLikes;
     
-    // Optimistically update UI
     setHasLiked(!hasLiked);
     setOptimisticLikes(hasLiked ? optimisticLikes - 1 : optimisticLikes + 1);
     
     try {
       await toggleLike(post.id);
     } catch (error) {
-      // Rollback on error
       setHasLiked(previousHasLiked);
       setOptimisticLikes(previousOptimisticLikes);
       toast.error("Failed to update like");
@@ -88,7 +86,6 @@ function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }
     try {
       setIsDeleting(true);
       
-      // Use callback if provided, otherwise use direct delete action
       if (onDelete) {
         await onDelete(post.id);
       } else {
@@ -106,8 +103,12 @@ function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }
     }
   };
 
-  // Determine if delete button should be shown
-  const shouldShowDelete = showDelete && actualCurrentUserId === post.author.id;
+  // CRITICAL FIX: Compare current user's DB ID with post author's DB ID
+  // Only show delete button if:
+  // 1. showDelete is true (feature flag)
+  // 2. actualCurrentUserId exists (user is logged in)
+  // 3. actualCurrentUserId matches post.author.id (user owns this post)
+  const shouldShowDelete = showDelete && actualCurrentUserId && actualCurrentUserId === post.author.id;
 
   return (
     <Card className='overflow-hidden mb-6'>
@@ -119,7 +120,6 @@ function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }
                 <AvatarImage src={post.author.image ?? "/avatar.png"} />
               </Avatar>
             </Link>
-            {/*post header and text content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 truncate">
@@ -135,7 +135,6 @@ function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }
                     <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
                   </div>
                 </div>
-                {/* Check if current user is the post author AND showDelete is true */}
                 {shouldShowDelete && (
                   <DeleteAlertDialog isDeleting={isDeleting} onDelete={handleDelete} />
                 )}
@@ -143,13 +142,11 @@ function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }
               <p className="mt-2 text-sm text-foreground break-words">{post.content}</p>
             </div>
           </div>
-          {/* Post image if available */}
           {post.image && (
             <div className="rounded-lg overflow-hidden">
               <img src={post.image} alt="Post content" className="w-full h-auto object-cover" />
             </div>
           )}
-          {/*likes and comments sections */}
           <div className="flex items-center pt-2 space-x-4">
             {user ? (
               <Button
@@ -189,11 +186,9 @@ function PostCard({ post, dbUserId, currentUserId, onDelete, showDelete = true }
               <span>{post.comments.length}</span>
             </Button>
           </div>
-          {/* COMMENTS SECTION */}
           {showComments && (
             <div className="space-y-4 pt-4 border-t">
               <div className="space-y-4">
-                {/* DISPLAY COMMENTS */}
                 {post.comments.map((comment) => (
                   <div key={comment.id} className="flex space-x-3">
                     <Avatar className="size-8 flex-shrink-0">

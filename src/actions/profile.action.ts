@@ -4,6 +4,9 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getDbUserId } from "./user.action";
 import { auth } from "@clerk/nextjs/server";
+
+// Export this for use in ProfilePage
+
 export async function getProfile(username: string) {
   try {
     // FIX: Handle URL encoding and case sensitivity
@@ -39,6 +42,7 @@ export async function getProfile(username: string) {
     throw new Error("Failed to fetch profile");
   }
 }
+
 export async function getProfilePosts(userId:string){
     try {
         const posts=await prisma.post.findMany({
@@ -92,6 +96,7 @@ export async function getProfilePosts(userId:string){
   
     }
 }
+
 export async function getUserLikedPosts(userId: string) {
   try {
     const LikedPosts = await prisma.post.findMany({

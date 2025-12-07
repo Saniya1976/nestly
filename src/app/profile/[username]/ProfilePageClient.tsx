@@ -36,7 +36,7 @@ interface ProfilePageClientProps {
   likedPosts: LikedPosts;
   isFollowing: Following;
   params: { username: string };
-  currentUserId?: string; // Add this prop
+  currentUserId?: string; // Database user ID (not Clerk ID)
 }
 
 function ProfilePageClient({
@@ -45,12 +45,9 @@ function ProfilePageClient({
   posts,
   user,
   params,
-  currentUserId: serverCurrentUserId // Rename for clarity
+  currentUserId // This is the DATABASE user ID
 }: ProfilePageClientProps) {
   const { user: clerkUser } = useUser();
-  
-  // Use server-side currentUserId or fallback to client-side Clerk user ID
-  const actualCurrentUserId = serverCurrentUserId || clerkUser?.id;
   
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
@@ -93,7 +90,8 @@ function ProfilePageClient({
     }
   };
 
-  const isOwnProfile = actualCurrentUserId === user.id;
+  // FIXED: Use only the database user ID
+  const isOwnProfile = currentUserId === user.id;
 
   const formattedDate = format(new Date(user.createdAt), "dd MMMM yyyy");
 
@@ -237,7 +235,7 @@ function ProfilePageClient({
                     key={post.id} 
                     post={post} 
                     dbUserId={user.id}
-                    currentUserId={actualCurrentUserId}
+                    currentUserId={currentUserId} // Pass DATABASE user ID
                     onDelete={handleDeletePost}
                     showDelete={true}
                   />
@@ -256,7 +254,7 @@ function ProfilePageClient({
                     key={post.id} 
                     post={post} 
                     dbUserId={user.id}
-                    currentUserId={actualCurrentUserId}
+                    currentUserId={currentUserId} // Pass DATABASE user ID
                     showDelete={false} // Don't show delete for liked posts
                   />
                 ))
