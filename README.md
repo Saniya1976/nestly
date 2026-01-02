@@ -1,36 +1,164 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nestly
 
-## Getting Started
+Nestly is a production-ready social media platform built with Next.js 14, using the App Router, Server Components, and Server Actions to deliver high performance, scalability, and type safety. The project emphasizes real-world product engineering practices rather than demo-level implementations.
 
-First, run the development server:
+🚀 Overview
+
+Nestly is a full-stack social networking application designed to reflect how modern product companies build and scale applications. It focuses on efficient rendering, type-safe data handling, and practical engineering trade-offs.
+
+Built on the Next.js 14 App Router, the platform uses Server Components to reduce client-side complexity and Server Actions to handle secure, type-safe backend operations. It demonstrates scalable social features, structured data modeling, and thoughtful UI patterns to improve overall user experience.
+
+## ✨ Key Features
+
+* User authentication and management using **Clerk** with automatic user synchronization
+* Create posts with image uploads
+* Social interactions: **likes, comments, follows**
+* **Optimistic UI updates** for likes and comments to provide instant feedback
+* **AI-powered caption generation** using **Groq API (Llama 3.3)** 
+* **Real-time notifications** with rich contextual data
+* Mobile-first, fully responsive UI
+
+---
+
+## 🧠 Technical Highlights
+
+* Built using **Next.js 14 App Router** for modern routing and layouts
+* Extensive use of **Server Components** to reduce client bundle size
+* **Server Actions** for secure, type-safe backend logic without traditional API layers
+* Fully typed codebase using **TypeScript**
+* **Prisma ORM** for managing complex relational data models
+
+  * Well-defined relations
+  * Unique constraints
+  * Composite indexes
+  * Cascade deletes to maintain data integrity
+* Optimistic UI patterns to deliver instant user feedback
+* Designed with scalability and maintainability in mind
+
+---
+
+## 🛠 Tech Stack
+
+* **Frontend:** Next.js 14, React, TypeScript
+* **Backend:** Next.js Server Actions
+* **Database Layer:** Prisma ORM
+* **Authentication:** Clerk
+* **AI Integration:** Groq API (Llama 3.3)
+* **Styling:** Tailwind CSS
+
+---
+
+## 📂 Project Structure
+
+```
+NESTLY/
+├── .next/
+├── components/
+├── node_modules/
+├── prisma/
+├── public/
+├── src/
+│   ├── actions/
+│   ├── app/
+│   ├── components/
+│   ├── lib/
+│   └── middleware.ts
+├── test/
+├── .env
+├── .gitignore
+├── components.json
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── README.md
+├── tailwind.config.ts
+└── tsconfig.json
+
+```
+
+---
+
+## ⚙️ Installation & Setup
+
+1. Clone the repository
+
+```bash
+git clone <your-repo-link>
+cd nestly
+```
+
+2. Install dependencies
+
+```bash
+npm install
+```
+
+3. Configure environment variables
+   Create a `.env` file:
+
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+DATABASE_URL=
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=
+GROQ_API_KEY=
+
+```
+
+4. Run database migrations
+
+```bash
+npx prisma migrate dev
+```
+
+5. Start the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+6. Open in browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🔐 Authentication Flow
 
-To learn more about Next.js, take a look at the following resources:
+* User authentication handled by **Clerk**
+* Secure session handling across Server Components and Server Actions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📌 What This Project Demonstrates
 
-## Deploy on Vercel
+* Building a **real-world, production-ready social platform** using modern Next.js patterns
+* Writing **type-safe full-stack code** with minimal runtime errors
+* Designing scalable relational data models using Prisma
+* Applying optimistic UI techniques to improve perceived performance
+* Integrating AI features in a controlled and product-focused manner
+* Making architectural decisions similar to those made in mid-level product teams
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔮 Future Improvements
+
+* WebSocket-based live notifications
+* Advanced content moderation
+* Performance monitoring and logging
+* Enhanced search and discovery
+* Automated testing (unit + integration)
+
+---
+
+## 👩‍💻 Author
+
+**Saniya**
+Full Stack Developer
+
+---
