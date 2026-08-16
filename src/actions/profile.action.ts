@@ -164,6 +164,7 @@ export async function updateProfile({ formData }: { formData: FormData }) {
     const bio = formData.get("bio") as string | null;
     const location = formData.get("location") as string | null;
     const website = formData.get("website") as string | null;
+    const image = formData.get("image") as string | null;
 
     const user = await prisma.user.update({
       where: { clerkId },
@@ -172,16 +173,52 @@ export async function updateProfile({ formData }: { formData: FormData }) {
         bio: bio ?? undefined,
         location: location ?? undefined,
         website: website ?? undefined,
+        image: image ?? undefined,
       },
     });
 
-    // 👇 Revalidate the user's profile page
     revalidatePath(`/profile/${user.username}`);
+    revalidatePath("/");
 
     return { success: true, user };
   } catch (error) {
     console.error("Error updating profile:", error);
     return { success: false, error: "Failed to update profile" };
+  }
+}
+
+const followUserSelect = {
+  id: true,
+  name: true,
+  username: true,
+  image: true,
+} as const;
+
+export async function getFollowers(userId: string) {
+  try {
+    const follows = await prisma.follows.findMany({
+      where: { followingId: userId },
+      include: { follower: { select: followUserSelect } },
+      orderBy: { createdAt: "desc" },
+    });
+    return follows.map((follow) => follow.follower);
+  } catch (error) {
+    console.error("Error fetching followers:", error);
+    return [];
+  }
+}
+
+export async function getFollowing(userId: string) {
+  try {
+    const follows = await prisma.follows.findMany({
+      where: { followerId: userId },
+      include: { following: { select: followUserSelect } },
+      orderBy: { createdAt: "desc" },
+    });
+    return follows.map((follow) => follow.following);
+  } catch (error) {
+    console.error("Error fetching following:", error);
+    return [];
   }
 }
 

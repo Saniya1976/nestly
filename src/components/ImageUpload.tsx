@@ -6,9 +6,10 @@ import { XIcon, UploadIcon, Loader2 } from "lucide-react";
 interface ImageUploadProps {
   onChange: (url: string) => void;
   value: string;
+  inputId?: string;
 }
 
-function ImageUpload({ onChange, value }: ImageUploadProps) {
+function ImageUpload({ onChange, value, inputId = "file-upload" }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileUpload = async (file: File) => {
@@ -105,14 +106,14 @@ function ImageUpload({ onChange, value }: ImageUploadProps) {
   >
     <input
       type="file"
-      id="file-upload"
+      id={inputId}
       accept="image/*"
       onChange={handleFileSelect}
       className="hidden"
       disabled={isUploading}
     />
     
-    <label htmlFor="file-upload" className="cursor-pointer block">
+    <label htmlFor={inputId} className="cursor-pointer block">
       {isUploading ? (
         <div className="flex flex-col items-center space-y-2">
           <Loader2 className="h-6 w-6 text-gray-600 dark:text-gray-500 animate-spin" />

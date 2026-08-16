@@ -9,6 +9,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
 import { HeartIcon, MessageCircleIcon, UserPlusIcon } from "lucide-react";
+import Link from "next/link";
 
 // ✅ Extract notifications list into its own async server component
 async function NotificationsList() {
@@ -46,17 +47,24 @@ async function NotificationsList() {
             !notification.read ? "bg-muted/50" : ""
           }`}
         >
-          <Avatar className="mt-1">
-            <AvatarImage
-              src={notification.creator.image || "/avatar.png"}
-              alt={notification.creator.username || "User"}
-            />
-          </Avatar>
+          <Link href={`/profile/${notification.creator.username}`} className="shrink-0">
+            <Avatar className="mt-1">
+              <AvatarImage
+                src={notification.creator.image || "/avatar.png"}
+                alt={notification.creator.username || "User"}
+              />
+            </Avatar>
+          </Link>
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-2">
               {getNotificationIcon(notification.type)}
               <span>
-                <span className="font-medium">{notification.creator.username}</span>{" "}
+                <Link
+                  href={`/profile/${notification.creator.username}`}
+                  className="font-medium hover:underline"
+                >
+                  {notification.creator.username}
+                </Link>{" "}
                 {notification.type === "FOLLOW"
                   ? "started following you"
                   : notification.type === "LIKE"
